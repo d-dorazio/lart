@@ -4,26 +4,53 @@ use std::{
     fs,
     io::{self, BufWriter, Write},
     path::Path as FsPath,
+    time::SystemTime,
 };
+
+pub use rand::prelude::*;
+pub use rand_xoshiro::Xoshiro256StarStar;
 
 use crate::{Geometry, Path};
 
+pub type MyRng = Xoshiro256StarStar;
+
 pub struct Sketch {
     name: String,
-    width: f64,
-    height: f64,
+    page: Page,
+
+    seed: u64,
+    rng: MyRng,
 
     layer: i32,
     layers: BTreeMap<i32, Geometry>,
 }
 
+pub enum Page {
+    A4,
+    A5,
+    Custom(f64, f64),
+}
+
 impl Sketch {
-    pub fn a4() -> Self {
-        Self::with_dimensions(210.0, 297.0)
+    pub fn new(name: &str) -> Self {
+        let seed = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+
+        Self {
+            name: name.to_string(),
+            page: Page::A4,
+            seed,
+            rng: MyRng::seed_from_u64(seed),
+            layer: 0,
+            layers: BTreeMap::new(),
+        }
     }
 
-    pub fn a5() -> Self {
-        Self::with_dimensions(148.0, 210.0)
+    pub fn with_page(mut self, page: Page) -> Self {
+        self.page = page;
+        self
     }
 
     pub fn with_name(mut self, s: &str) -> Self {
@@ -31,14 +58,18 @@ impl Sketch {
         self
     }
 
-    pub fn with_dimensions(width: f64, height: f64) -> Self {
-        Self {
-            name: String::new(),
-            width,
-            height,
-            layer: 0,
-            layers: BTreeMap::new(),
-        }
+    pub fn with_seed(mut self, seed: u64) -> Self {
+        self.seed = seed;
+        self.rng = MyRng::seed_from_u64(seed);
+        self
+    }
+
+    pub fn rng(&mut self) -> &mut MyRng {
+        &mut self.rng
+    }
+
+    pub fn dimensions(&self) -> (f64, f64) {
+        self.page.dimensions()
     }
 
     pub fn geometry(&mut self, g: impl Into<Geometry>) {
@@ -47,14 +78,6 @@ impl Sketch {
         let layer = self.layers.entry(self.layer).or_insert_with(Geometry::new);
         layer.polygons.extend_from_slice(&g.polygons);
         layer.paths.extend_from_slice(&g.paths);
-    }
-
-    pub fn width(&self) -> f64 {
-        self.width
-    }
-
-    pub fn height(&self) -> f64 {
-        self.height
     }
 
     pub fn save(&self) -> io::Result<()> {
@@ -83,12 +106,14 @@ impl Sketch {
         let out = fs::File::create(outdir.join(format!("{i}.svg")))?;
         let mut out = BufWriter::new(out);
 
+        let (width, height) = self.page.dimensions();
+
         writeln!(
             out,
             r#"<?xml version="1.0" encoding="utf-8" ?>
 <svg viewBox="0 0 {w} {h}" width="{w}mm" height="{h}mm">"#,
-            w = self.width,
-            h = self.height
+            w = width,
+            h = height
         )?;
 
         let dump_path_points = |out: &mut BufWriter<fs::File>, path: &Path| -> io::Result<()> {
@@ -133,5 +158,15 @@ impl Sketch {
         writeln!(out, r"</svg>")?;
 
         Ok(())
+    }
+}
+
+impl Page {
+    fn dimensions(&self) -> (f64, f64) {
+        match *self {
+            Page::A4 => (210.0, 297.0),
+            Page::A5 => (148.0, 210.0),
+            Page::Custom(w, h) => (w, h),
+        }
     }
 }
