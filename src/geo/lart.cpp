@@ -1,0 +1,127 @@
+#include "lart/src/geo/types.rs.h"
+
+#include "lart/Clipper2/CPP/Clipper2Lib/clipper.h"
+
+struct Clipper::pimpl
+{
+    Clipper2Lib::Clipper64 clipper;
+    double precision = 1000;
+
+    Geometry execute(Clipper2Lib::ClipType ct)
+    {
+        Clipper2Lib::PolyTree64 polytree;
+        Clipper2Lib::Paths64 paths;
+
+        bool ok = clipper.Execute(ct, Clipper2Lib::FillRule::EvenOdd, polytree, paths);
+        if (!ok)
+            return Geometry{};
+
+        Geometry geo;
+        geo.polygons.reserve(polytree.Count());
+        geo.paths.reserve(paths.size());
+
+        for (auto const &path64 : paths)
+            geo.paths.push_back(to_path(path64));
+
+        for (auto *poly : polytree)
+        {
+            Polygon p;
+            p.areas.reserve(1);
+
+            std::vector<Clipper2Lib::PolyPath<int64_t> *> stack;
+            stack.push_back(poly);
+
+            while (!stack.empty())
+            {
+                auto *polypath = stack.back();
+                stack.pop_back();
+
+                p.areas.push_back(to_path(polypath->Polygon()));
+
+                p.areas.reserve(p.areas.size() + polypath->Count());
+                stack.insert(std::end(stack), std::begin(*polypath), std::end(*polypath));
+            }
+
+            geo.polygons.push_back(std::move(p));
+        }
+
+        return geo;
+    }
+
+    Path to_path(Clipper2Lib::Path64 const &path64)
+    {
+        Path pp;
+        pp.points.reserve(path64.size());
+        for (auto p : path64)
+            pp.points.push_back(V{p.x / precision, p.y / precision});
+        return pp;
+    }
+
+    Clipper2Lib::Path64 to_path64(Path const &path)
+    {
+        Clipper2Lib::Path64 path64(path.points.size());
+
+        for (size_t i = 0; i < path64.size(); ++i)
+        {
+            V p = path.points[i];
+            path64[i] = Clipper2Lib::Point64{p.x * precision, p.y * precision};
+        }
+
+        return path64;
+    }
+
+    Clipper2Lib::Paths64 to_paths64(Polygon const &polygon)
+    {
+        Clipper2Lib::Paths64 paths64(polygon.areas.size());
+
+        for (size_t i = 0; i < paths64.size(); ++i)
+            paths64[i] = to_path64(polygon.areas[i]);
+
+        return paths64;
+    }
+};
+
+Clipper::Clipper()
+    : impl(std::make_shared<pimpl>())
+{
+}
+
+void Clipper::add_polygon(Polygon const &polygon)
+{
+    impl->clipper.AddSubject(impl->to_paths64(polygon));
+}
+
+void Clipper::add_polyline(Path const &polyline)
+{
+    impl->clipper.AddOpenSubject({impl->to_path64(polyline)});
+}
+
+void Clipper::add_clip(Polygon const &polygon)
+{
+    impl->clipper.AddClip(impl->to_paths64(polygon));
+}
+
+Geometry Clipper::union_()
+{
+    return impl->execute(Clipper2Lib::ClipType::Union);
+}
+
+Geometry Clipper::intersection()
+{
+    return impl->execute(Clipper2Lib::ClipType::Intersection);
+}
+
+Geometry Clipper::difference()
+{
+    return impl->execute(Clipper2Lib::ClipType::Difference);
+}
+
+Geometry Clipper::symmetric_difference()
+{
+    return impl->execute(Clipper2Lib::ClipType::Xor);
+}
+
+std::unique_ptr<Clipper> new_clipper()
+{
+    return std::make_unique<Clipper>();
+}
