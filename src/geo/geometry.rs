@@ -7,6 +7,11 @@ impl Geometry {
             paths: vec![],
         }
     }
+
+    pub fn extend(&mut self, o: &Self) {
+        self.polygons.extend_from_slice(&o.polygons);
+        self.paths.extend_from_slice(&o.paths);
+    }
 }
 
 impl From<Polygon> for Geometry {

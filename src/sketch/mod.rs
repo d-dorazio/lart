@@ -3,7 +3,7 @@ use std::{
     ffi::OsStr,
     fs,
     io::{self, BufWriter, Write},
-    path::Path as FsPath,
+    path::{Path as FsPath, PathBuf},
     time::SystemTime,
 };
 
@@ -21,8 +21,15 @@ pub struct Sketch {
     seed: u64,
     rng: MyRng,
 
-    layer: i32,
-    layers: BTreeMap<i32, Geometry>,
+    layer_id: i32,
+    layers: BTreeMap<i32, Layer>,
+}
+
+pub struct Layer {
+    geo: Geometry,
+    fill: String,
+    stroke: String,
+    pen_width: String,
 }
 
 pub enum Page {
@@ -43,7 +50,7 @@ impl Sketch {
             page: Page::A4,
             seed,
             rng: MyRng::seed_from_u64(seed),
-            layer: 0,
+            layer_id: 1,
             layers: BTreeMap::new(),
         }
     }
@@ -68,42 +75,51 @@ impl Sketch {
         &mut self.rng
     }
 
+    pub fn seed(&self) -> u64 {
+        self.seed
+    }
+
     pub fn dimensions(&self) -> (f64, f64) {
         self.page.dimensions()
     }
 
     pub fn geometry(&mut self, g: impl Into<Geometry>) {
         let g = g.into();
-
-        let layer = self.layers.entry(self.layer).or_insert_with(Geometry::new);
-        layer.polygons.extend_from_slice(&g.polygons);
-        layer.paths.extend_from_slice(&g.paths);
+        self.layer(self.layer_id).geo.extend(&g);
     }
 
-    pub fn save(&self) -> io::Result<()> {
+    pub fn layer(&mut self, lid: i32) -> &mut Layer {
+        self.layer_id = lid;
+        self.layers.entry(self.layer_id).or_default()
+    }
+
+    pub fn save(&self) -> io::Result<PathBuf> {
         let outdir = FsPath::new(&self.name);
 
         if !outdir.is_dir() {
             fs::create_dir(outdir)?;
         }
 
-        let mut i = 0;
-        for f in fs::read_dir(outdir)? {
-            let f = f?.path();
+        let get_next_free_name = || -> io::Result<String> {
+            let mut last = 0;
+            for f in fs::read_dir(outdir)? {
+                let f = f?.path();
 
-            if !f.is_file() || f.extension() != Some(OsStr::new("svg")) {
-                continue;
-            }
+                if !f.is_file() || f.extension() != Some(OsStr::new("svg")) {
+                    continue;
+                }
 
-            if let Some(n) = f.file_stem() {
-                if let Ok(n) = n.to_string_lossy().parse() {
-                    i = i.max(n);
+                let n = f.file_stem().and_then(|n| n.to_string_lossy().parse().ok());
+                if let Some(n) = n {
+                    last = last.max(n);
                 }
             }
-        }
-        i += 1;
 
-        let out = fs::File::create(outdir.join(format!("{i}.svg")))?;
+            Ok(format!("{}.svg", last + 1))
+        };
+
+        let outpath = outdir.join(&get_next_free_name()?);
+        let out = fs::File::create(&outpath)?;
         let mut out = BufWriter::new(out);
 
         let (width, height) = self.page.dimensions();
@@ -123,15 +139,17 @@ impl Sketch {
             Ok(())
         };
 
-        for (lid, geo) in &self.layers {
+        for (lid, layer) in &self.layers {
+            let geo = &layer.geo;
+
             if geo.polygons.is_empty() && geo.paths.is_empty() {
                 continue;
             }
 
             writeln!(
                 out,
-                r#"<g id="layer{}" fill="none" stroke="black" stroke-width="0.2mm">"#,
-                lid + 1
+                r#"<g id="layer{}" fill="{}" stroke="{}" stroke-width="{}">"#,
+                lid, layer.fill, layer.stroke, layer.pen_width
             )?;
 
             for path in &geo.paths {
@@ -157,7 +175,35 @@ impl Sketch {
 
         writeln!(out, r"</svg>")?;
 
-        Ok(())
+        Ok(outpath)
+    }
+}
+
+impl Layer {
+    pub fn with_fill(&mut self, fill: &str) -> &mut Self {
+        self.fill = fill.to_string();
+        self
+    }
+
+    pub fn with_stroke(&mut self, stroke: &str) -> &mut Self {
+        self.stroke = stroke.to_string();
+        self
+    }
+
+    pub fn with_pen_width(&mut self, pen_width: &str) -> &mut Self {
+        self.pen_width = pen_width.to_string();
+        self
+    }
+}
+
+impl Default for Layer {
+    fn default() -> Self {
+        Self {
+            geo: Geometry::new(),
+            fill: "none".to_string(),
+            stroke: "black".to_string(),
+            pen_width: "0.2mm".to_string(),
+        }
     }
 }
 
