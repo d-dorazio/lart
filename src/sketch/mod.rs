@@ -1,3 +1,7 @@
+pub mod parms;
+
+pub use parms::*;
+
 use std::{
     collections::BTreeMap,
     ffi::OsStr,
@@ -36,6 +40,15 @@ pub enum Page {
     A4,
     A5,
     Custom(f64, f64),
+}
+
+#[macro_export]
+macro_rules! skv_log {
+    ($command:expr, $value:expr) => {
+        if std::env::var("SKV_VIEWER").is_ok() {
+            println!("#SKV_VIEWER_COMMAND {}={}", $command, $value);
+        }
+    };
 }
 
 impl Sketch {
@@ -132,6 +145,8 @@ impl Sketch {
             h = height
         )?;
 
+        // TODO: dump parameters here?
+
         let dump_path_points = |out: &mut BufWriter<fs::File>, path: &Path| -> io::Result<()> {
             for p in path.points() {
                 write!(out, "{},{} ", p.x, p.y)?;
@@ -174,6 +189,8 @@ impl Sketch {
         }
 
         writeln!(out, r"</svg>")?;
+
+        skv_log!("SVG", outpath.canonicalize()?.to_str().unwrap());
 
         Ok(outpath)
     }
