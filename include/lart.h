@@ -27,3 +27,5 @@ private:
 };
 
 std::unique_ptr<Clipper> new_clipper();
+
+Geometry buffer(Geometry const & /*geo*/, double /*delta*/);

@@ -36,6 +36,8 @@ pub mod ffi {
         fn intersection(self: Pin<&mut Clipper>) -> Geometry;
         fn difference(self: Pin<&mut Clipper>) -> Geometry;
         fn symmetric_difference(self: Pin<&mut Clipper>) -> Geometry;
+
+        fn buffer(geo: &Geometry, delta: f64) -> Geometry;
     }
 }
 

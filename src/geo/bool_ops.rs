@@ -1,9 +1,19 @@
 use cxx::UniquePtr;
 
 use crate::{
-    ffi::{new_clipper, Clipper},
+    ffi::{self, new_clipper, Clipper},
     Geometry,
 };
+
+impl Geometry {
+    pub fn buffer(&self, delta: f64) -> Self {
+        if delta != 0.0 {
+            ffi::buffer(self, delta)
+        } else {
+            self.clone()
+        }
+    }
+}
 
 macro_rules! bool_op {
     ($tr: ident, $name: ident, $op: ident) => {
