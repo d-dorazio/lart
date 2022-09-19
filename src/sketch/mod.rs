@@ -33,7 +33,7 @@ pub struct Layer {
     geo: Geometry,
     fill: String,
     stroke: String,
-    pen_width: String,
+    pen_width: f64, // mm
 }
 
 pub enum Page {
@@ -207,8 +207,8 @@ impl Layer {
         self
     }
 
-    pub fn with_pen_width(&mut self, pen_width: &str) -> &mut Self {
-        self.pen_width = pen_width.to_string();
+    pub fn with_pen_width(&mut self, pen_width: f64) -> &mut Self {
+        self.pen_width = pen_width;
         self
     }
 }
@@ -219,7 +219,7 @@ impl Default for Layer {
             geo: Geometry::new(),
             fill: "none".to_string(),
             stroke: "black".to_string(),
-            pen_width: "0.2mm".to_string(),
+            pen_width: 0.2,
         }
     }
 }
