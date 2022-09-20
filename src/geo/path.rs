@@ -7,6 +7,12 @@ impl Path {
         Self { points: vec![] }
     }
 
+    pub fn with_capacity(cap: usize) -> Self {
+        Self {
+            points: Vec::with_capacity(cap),
+        }
+    }
+
     pub fn push(&mut self, a: impl Into<V>) {
         self.points.push(a.into())
     }
@@ -39,8 +45,12 @@ impl Path {
         self.iter().zip(self.iter().skip(1))
     }
 
-    pub fn size(&self) -> f64 {
+    pub fn norm(&self) -> f64 {
         self.segments().map(|(a, b)| a.dist(b)).sum()
+    }
+
+    pub fn norm2(&self) -> f64 {
+        self.segments().map(|(a, b)| a.dist2(b)).sum()
     }
 }
 
