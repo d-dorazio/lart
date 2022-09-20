@@ -1,6 +1,6 @@
 use std::ops::{Index, IndexMut};
 
-use crate::{Path, V};
+use crate::{bbox_union, Bbox, Path, Rect, V};
 
 impl Path {
     pub const fn new() -> Self {
@@ -51,6 +51,12 @@ impl Path {
 
     pub fn norm2(&self) -> f64 {
         self.segments().map(|(a, b)| a.dist2(b)).sum()
+    }
+}
+
+impl Bbox for Path {
+    fn bbox(&self) -> Option<Rect> {
+        bbox_union(&self.points)
     }
 }
 

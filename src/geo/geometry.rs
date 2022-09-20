@@ -1,4 +1,4 @@
-use crate::{Geometry, Path, Polygon};
+use crate::{bbox_union, Bbox, Geometry, Path, Polygon, Rect};
 
 impl Geometry {
     pub const fn new() -> Self {
@@ -34,6 +34,34 @@ impl Geometry {
     pub fn lines(&self) -> &[Path] {
         &self.paths
     }
+
+    pub fn bbox(&self) -> Option<Rect> {
+        let mut bboxes = self
+            .polygons
+            .iter()
+            .filter_map(Polygon::bbox)
+            .chain(self.paths.iter().filter_map(Path::bbox));
+
+        let mut bbox = bboxes.next()?;
+        for b in bboxes {
+            bbox.union(&b);
+        }
+
+        Some(bbox)
+    }
+}
+
+impl Bbox for Geometry {
+    fn bbox(&self) -> Option<Rect> {
+        match (bbox_union(&self.polygons), bbox_union(&self.paths)) {
+            (None, None) => None,
+            (Some(b), None) | (None, Some(b)) => Some(b),
+            (Some(mut b1), Some(b2)) => {
+                b1.union(&b2);
+                Some(b1)
+            }
+        }
+    }
 }
 
 impl From<Polygon> for Geometry {
@@ -51,5 +79,11 @@ impl From<Path> for Geometry {
             polygons: vec![],
             paths: vec![p],
         }
+    }
+}
+
+impl From<Rect> for Geometry {
+    fn from(r: Rect) -> Self {
+        Geometry::from(Polygon::from(r))
     }
 }

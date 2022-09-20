@@ -1,4 +1,4 @@
-use crate::V;
+use crate::{Bbox, Rect, V};
 
 impl V {
     pub const fn new(x: f64, y: f64) -> Self {
@@ -31,6 +31,12 @@ impl V {
 
     pub fn dist2(self, rhs: Self) -> f64 {
         (rhs - self).len2()
+    }
+}
+
+impl Bbox for V {
+    fn bbox(&self) -> Option<Rect> {
+        Some(Rect::new(*self))
     }
 }
 
