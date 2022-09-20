@@ -14,7 +14,7 @@ use std::{
 pub use rand::prelude::*;
 pub use rand_xoshiro::Xoshiro256StarStar;
 
-use crate::{Geometry, Path};
+use crate::{Geometry, Path, Rect, Transform, V};
 
 pub type MyRng = Xoshiro256StarStar;
 
@@ -104,6 +104,43 @@ impl Sketch {
     pub fn layer(&mut self, lid: i32) -> &mut Layer {
         self.layer_id = lid;
         self.layers.entry(self.layer_id).or_default()
+    }
+
+    pub fn fit_to_page(&mut self, margin: f64) {
+        let bbox = match self.bbox() {
+            None => return,
+            Some(b) => b,
+        };
+
+        let (w, h) = self.dimensions();
+        let sf = f64::min(
+            (w - margin * 2.0) / bbox.width(),
+            (h - margin * 2.0) / bbox.height(),
+        );
+
+        let center = bbox.center();
+
+        for l in self.layers.values_mut() {
+            l.geo
+                .transform(&mut |p: V| (p - center) * sf + V::new(w / 2.0, h / 2.0));
+        }
+    }
+
+    fn bbox(&self) -> Option<Rect> {
+        let mut bbox: Option<Rect> = None;
+
+        for l in self.layers.values() {
+            if let Some(b) = l.geo.bbox() {
+                bbox = match bbox {
+                    Some(mut bb) => {
+                        bb.union(&b);
+                        Some(bb)
+                    }
+                    None => Some(b),
+                };
+            }
+        }
+        bbox
     }
 
     pub fn save(&self) -> io::Result<PathBuf> {
