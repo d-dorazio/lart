@@ -1,4 +1,4 @@
-use crate::{Bbox, Rect, V};
+use crate::{Bbox, Rect, Transform, V};
 
 impl V {
     pub const fn new(x: f64, y: f64) -> Self {
@@ -37,6 +37,12 @@ impl V {
 impl Bbox for V {
     fn bbox(&self) -> Option<Rect> {
         Some(Rect::new(*self))
+    }
+}
+
+impl Transform for V {
+    fn transform(&mut self, f: &mut impl FnMut(V) -> V) {
+        *self = f(*self);
     }
 }
 

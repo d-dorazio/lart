@@ -8,3 +8,7 @@ pub mod v;
 
 pub use rect::*;
 pub use types::*;
+
+pub trait Transform {
+    fn transform(&mut self, f: &mut impl FnMut(V) -> V);
+}
