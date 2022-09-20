@@ -47,43 +47,71 @@ impl Transform for V {
 }
 
 macro_rules! impl_num_op {
-    ($tr: ident, $name: ident, $op: tt) => {
-
+    ($tr: ident, $name: ident) => {
         impl std::ops::$tr<f64> for V {
             type Output = Self;
             fn $name(self, rhs: f64) -> Self::Output {
-                V::new(self.x $op rhs, self.y $op rhs)
+                V::new(self.x.$name(rhs), self.y.$name(rhs))
             }
         }
 
         impl std::ops::$tr<V> for f64 {
             type Output = V;
             fn $name(self, rhs: V) -> Self::Output {
-                V::new(self $op rhs.x, self $op rhs.y)
+                V::new(self.$name(rhs.x), self.$name(rhs.y))
             }
         }
 
         impl std::ops::$tr<V> for V {
             type Output = Self;
             fn $name(self, rhs: V) -> Self::Output {
-                V::new(self.x $op rhs.x, self.y $op rhs.y)
+                V::new(self.x.$name(rhs.x), self.y.$name(rhs.y))
             }
         }
 
-        impl<W: Into<f64>> std::ops::$tr<(W,W)> for V {
+        impl<W: Into<f64>> std::ops::$tr<(W, W)> for V {
             type Output = Self;
-            fn $name(self, rhs: (W,W)) -> Self::Output {
-                V::new(self.x $op rhs.0.into(), self.y $op rhs.1.into())
+            fn $name(self, rhs: (W, W)) -> Self::Output {
+                V::new(self.x.$name(rhs.0.into()), self.y.$name(rhs.1.into()))
+            }
+        }
+    };
+
+    (Assign, $tr: ident, $name: ident) => {
+        impl std::ops::$tr<f64> for V {
+            fn $name(&mut self, rhs: f64) {
+                self.x.$name(rhs);
+                self.y.$name(rhs);
+            }
+        }
+
+        impl std::ops::$tr<V> for V {
+            fn $name(&mut self, rhs: V) {
+                self.x.$name(rhs.x);
+                self.y.$name(rhs.y);
+            }
+        }
+
+        impl<W: Into<f64>> std::ops::$tr<(W, W)> for V {
+            fn $name(&mut self, rhs: (W, W)) {
+                self.x.$name(rhs.0.into());
+                self.y.$name(rhs.1.into());
             }
         }
     };
 }
 
-impl_num_op!(Add, add, +);
-impl_num_op!(Sub, sub, -);
-impl_num_op!(Mul, mul, *);
-impl_num_op!(Div, div, /);
-impl_num_op!(Rem, rem, %);
+impl_num_op!(Add, add);
+impl_num_op!(Sub, sub);
+impl_num_op!(Mul, mul);
+impl_num_op!(Div, div);
+impl_num_op!(Rem, rem);
+
+impl_num_op!(Assign, AddAssign, add_assign);
+impl_num_op!(Assign, SubAssign, sub_assign);
+impl_num_op!(Assign, MulAssign, mul_assign);
+impl_num_op!(Assign, DivAssign, div_assign);
+impl_num_op!(Assign, RemAssign, rem_assign);
 
 impl<T: Into<f64>> From<(T, T)> for V {
     fn from((x, y): (T, T)) -> Self {

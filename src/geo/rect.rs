@@ -17,8 +17,8 @@ impl Rect {
 
     pub fn pad(&mut self, p: f64) {
         let p = p.abs();
-        self.min = self.min - p;
-        self.max = self.max + p;
+        self.min -= p;
+        self.max += p;
     }
 
     pub fn expand(&mut self, v: V) {
