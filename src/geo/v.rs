@@ -1,8 +1,19 @@
+use rand::{distributions::uniform::SampleRange, Rng};
+
 use crate::{Bbox, Rect, Transform, V};
+
+pub fn v(x: impl Into<f64>, y: impl Into<f64>) -> V {
+    V::new(x.into(), y.into())
+}
 
 impl V {
     pub const fn new(x: f64, y: f64) -> Self {
         Self { x, y }
+    }
+
+    pub fn polar(a: f64, r: f64) -> Self {
+        let (s, c) = a.sin_cos();
+        Self::new(c * r, s * r)
     }
 
     pub fn len(self) -> f64 {
@@ -31,6 +42,14 @@ impl V {
 
     pub fn dist2(self, rhs: Self) -> f64 {
         (rhs - self).len2()
+    }
+
+    pub fn in_range(
+        rng: &mut impl Rng,
+        x: impl SampleRange<f64>,
+        y: impl SampleRange<f64>,
+    ) -> Self {
+        Self::new(rng.gen_range(x), rng.gen_range(y))
     }
 }
 
