@@ -159,13 +159,19 @@ impl Sketch {
                     continue;
                 }
 
-                let n = f.file_stem().and_then(|n| n.to_string_lossy().parse().ok());
+                let n = f.file_stem().and_then(|n| {
+                    n.to_string_lossy()
+                        .trim_start_matches(&self.name)
+                        .trim_start_matches('-')
+                        .parse()
+                        .ok()
+                });
                 if let Some(n) = n {
                     last = last.max(n);
                 }
             }
 
-            Ok(format!("{}.svg", last + 1))
+            Ok(format!("{}-{}.svg", self.name, last + 1))
         };
 
         let outpath = outdir.join(&get_next_free_name()?);
