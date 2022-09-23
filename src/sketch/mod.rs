@@ -8,7 +8,6 @@ use std::{
     fs,
     io::{self, BufWriter, Write},
     path::{Path as FsPath, PathBuf},
-    time::SystemTime,
 };
 
 pub use rand::prelude::*;
@@ -53,10 +52,7 @@ macro_rules! skv_log {
 
 impl Sketch {
     pub fn new(name: &str) -> Self {
-        let seed = SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
+        let seed = thread_rng().gen::<u64>();
 
         Self {
             name: name.to_string(),
