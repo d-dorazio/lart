@@ -2,6 +2,8 @@
 
 import argparse
 import json
+import os
+import shutil
 
 from PySide6.QtCore import Qt, QProcess, QTimer
 from PySide6.QtWidgets import (
@@ -45,6 +47,7 @@ class Skv(QMainWindow):
         self.timer.timeout.connect(self.fireCommand)
 
         self.process = None
+        self.loaded_svg_path = None
 
         self.manifest = None
         self.values = {}
@@ -52,6 +55,9 @@ class Skv(QMainWindow):
         self.fireCommand()
 
         self.timer.start()
+
+    def status(self, msg: str):
+        self.statusBar().showMessage(msg, 1000)
 
     def fireCommand(self):
         if self.process:
@@ -107,7 +113,11 @@ class Skv(QMainWindow):
             self.rebuildParmsWidget()
 
         if output:
-            self.svg.load(output.decode("utf-8"))
+            self.loaded_svg_path = output.decode("utf-8")
+            self.setWindowTitle(self.loaded_svg_path)
+            self.svg.load(self.loaded_svg_path)
+        else:
+            self.loaded_svg_path = None
 
         self.process = None
 
@@ -183,6 +193,15 @@ class Skv(QMainWindow):
             # TODO: png export
             pass
 
+        if event.key() == Qt.Key_Space:
+            self.status("Saving svg")
+            outdir = os.path.abspath(os.path.join(os.getcwd(), "liked"))
+            outfile = os.path.join(outdir, os.path.basename(self.loaded_svg_path))
+            os.makedirs(outdir, exist_ok=True)
+            shutil.copyfile(self.loaded_svg_path, outfile)
+            self.status(f"Svg saved")
+            return
+
         return super().keyPressEvent(event)
 
 
@@ -211,8 +230,6 @@ class SvgView(QGraphicsView):
         self.setBackgroundBrush(tile_pix)
 
     def load(self, path: str):
-        self.parent().setWindowTitle(path)
-
         s = self.scene()
         s.clear()
 
