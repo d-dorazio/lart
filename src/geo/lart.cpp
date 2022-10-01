@@ -148,6 +148,7 @@ Geometry buffer(Geometry const &geo, double delta)
     }
 
     Geometry out;
-    out.polygons.push_back(std::move(poly));
+    if (!poly.areas.empty())
+        out.polygons.push_back(std::move(poly));
     return out;
 }
