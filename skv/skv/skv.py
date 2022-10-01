@@ -33,7 +33,10 @@ from PySide6.QtSvgWidgets import QGraphicsSvgItem
 
 
 class Skv(QMainWindow):
-    def __init__(self, command: list[str], start_timeout: int):
+    SLOW_TIMEOUT = 5000
+    FAST_TIMEOUT = 1500
+
+    def __init__(self, command: list[str]):
         super().__init__()
 
         self.command = command
@@ -43,7 +46,7 @@ class Skv(QMainWindow):
         self.setCentralWidget(self.svg)
 
         self.timer = QTimer(self)
-        self.timer.setInterval(start_timeout)
+        self.timer.setInterval(self.SLOW_TIMEOUT)
         self.timer.timeout.connect(self.fireCommand)
 
         self.process = None
@@ -63,6 +66,7 @@ class Skv(QMainWindow):
         if self.process:
             return
 
+        self.timer.stop()
         self.process = QProcess(self)
         self.process.setEnvironment(QProcess.systemEnvironment() + ["SKV_VIEWER=1"])
 
@@ -76,6 +80,7 @@ class Skv(QMainWindow):
 
         print(command)
         self.process.start(command[0], command[1:])
+        self.timer.start()
 
     def onCommandError(self, err: QProcess.ProcessError):
         print("error running command", err)
@@ -202,6 +207,17 @@ class Skv(QMainWindow):
             self.status(f"Svg saved")
             return
 
+        if event.key() == Qt.Key_F:
+            self.timer.stop()
+            timeout = (
+                self.SLOW_TIMEOUT
+                if event.modifiers() & Qt.ShiftModifier
+                else self.FAST_TIMEOUT
+            )
+            self.timer.setInterval(timeout)
+            self.timer.start()
+            return
+
         return super().keyPressEvent(event)
 
 
@@ -279,12 +295,11 @@ class SvgView(QGraphicsView):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("command", nargs="+")
-    p.add_argument("-t", "--timeout", default=5000)
     args = p.parse_args()
 
     app = QApplication()
 
-    mainw = Skv(args.command, args.timeout)
+    mainw = Skv(args.command)
     mainw.resize(1024, 1024)
     mainw.show()
 
