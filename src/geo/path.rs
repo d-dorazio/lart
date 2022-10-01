@@ -41,6 +41,10 @@ impl Path {
         &self.points
     }
 
+    pub fn segment(&self, i: usize) -> Self {
+        Self::from([self.points[i], self.points[(i + 1) % self.points.len()]])
+    }
+
     pub fn segments(&self) -> impl Iterator<Item = (V, V)> + '_ {
         self.iter().zip(self.iter().skip(1))
     }
