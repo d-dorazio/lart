@@ -22,6 +22,10 @@ impl Geometry {
         }
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.polygons.iter().all(Polygon::is_empty) && self.paths.iter().all(Path::is_empty)
+    }
+
     pub fn extend(&mut self, o: &Self) {
         self.polygons.extend_from_slice(&o.polygons);
         self.paths.extend_from_slice(&o.paths);

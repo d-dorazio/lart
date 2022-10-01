@@ -1,5 +1,11 @@
 use crate::{bbox_union, Bbox, Path, Polygon, Rect, Transform, V};
 
+impl Polygon {
+    pub fn is_empty(&self) -> bool {
+        self.areas.iter().all(Path::is_empty)
+    }
+}
+
 impl Bbox for Polygon {
     fn bbox(&self) -> Option<Rect> {
         bbox_union(&self.areas)
