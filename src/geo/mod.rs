@@ -10,6 +10,12 @@ pub use rect::*;
 pub use types::*;
 pub use v::v;
 
-pub trait Transform {
+pub trait Transform: Sized + Clone {
     fn transform(&mut self, f: &mut impl FnMut(V) -> V);
+
+    fn transformed(&self, f: &mut impl FnMut(V) -> V) -> Self {
+        let mut out = self.clone();
+        out.transform(f);
+        out
+    }
 }
