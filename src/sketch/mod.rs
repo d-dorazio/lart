@@ -250,6 +250,10 @@ impl Layer {
         self.pen_width = pen_width;
         self
     }
+
+    pub fn geo(&self) -> &Geometry {
+        &self.geo
+    }
 }
 
 impl Default for Layer {
@@ -270,5 +274,23 @@ impl Page {
             Page::A5 => (148.0, 210.0),
             Page::Custom(w, h) => (w, h),
         }
+    }
+}
+
+impl RngCore for Sketch {
+    fn next_u32(&mut self) -> u32 {
+        self.rng.next_u32()
+    }
+
+    fn next_u64(&mut self) -> u64 {
+        self.rng.next_u64()
+    }
+
+    fn fill_bytes(&mut self, dest: &mut [u8]) {
+        self.rng.fill_bytes(dest)
+    }
+
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand::Error> {
+        self.rng.try_fill_bytes(dest)
     }
 }

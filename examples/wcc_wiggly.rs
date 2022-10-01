@@ -28,13 +28,11 @@ sketch_parms! {
 }
 
 fn glyph(doc: &mut Sketch, n: u16) -> Path {
-    let mut rng = doc.rng();
-
     let mut points = vec![];
     for a in polar_angles(n) {
-        points.push(V::polar(a, rng.gen_range(0.3..=0.5)));
+        points.push(V::polar(a, doc.gen_range(0.3..=0.5)));
     }
-    points.shuffle(&mut rng);
+    points.shuffle(doc);
     Path::from(points)
 }
 
@@ -47,7 +45,7 @@ fn main() {
 
     for g in grid_positions(parms.cols, parms.rows) {
         for _ in 0..parms.nsplines {
-            let n = doc.rng().gen_range(0..=1) + parms.n;
+            let n = doc.gen_range(0..=1) + parms.n;
 
             let mut path = glyph(&mut doc, n);
 
