@@ -16,16 +16,16 @@ impl V {
         Self::new(c * r, s * r)
     }
 
-    pub fn len(self) -> f64 {
+    pub fn norm(self) -> f64 {
         f64::hypot(self.x, self.y)
     }
 
-    pub fn len2(self) -> f64 {
+    pub fn norm2(self) -> f64 {
         self.x.powi(2) + self.y.powi(2)
     }
 
     pub fn normalized(self) -> Self {
-        self / self.len()
+        self / self.norm()
     }
 
     pub fn dot(self, rhs: V) -> f64 {
@@ -37,11 +37,11 @@ impl V {
     }
 
     pub fn dist(self, rhs: Self) -> f64 {
-        (rhs - self).len()
+        (rhs - self).norm()
     }
 
     pub fn dist2(self, rhs: Self) -> f64 {
-        (rhs - self).len2()
+        (rhs - self).norm2()
     }
 
     pub fn in_range(
