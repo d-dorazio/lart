@@ -1,6 +1,6 @@
 #include "lart/src/geo/types.rs.h"
 
-#include "lart/Clipper2/CPP/Clipper2Lib/clipper.h"
+#include "clipper2/clipper.h"
 
 static Path to_path(Clipper2Lib::Path64 const &path64, double precision)
 {

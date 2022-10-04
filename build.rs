@@ -4,11 +4,13 @@ fn main() {
     let mut build = cxx_build::bridge("src/geo/types.rs");
     build.flag_if_supported("-std=c++17");
 
+    build.flag("-IClipper2/CPP/Clipper2Lib/include");
+
     build
         .file("src/geo/lart.cpp")
-        .file("Clipper2/CPP/Clipper2Lib/clipper.h")
-        .file("Clipper2/CPP/Clipper2Lib/clipper.engine.cpp")
-        .file("Clipper2/CPP/Clipper2Lib/clipper.offset.cpp");
+        .file("Clipper2/CPP/Clipper2Lib/include/clipper2/clipper.h")
+        .file("Clipper2/CPP/Clipper2Lib/src/clipper.engine.cpp")
+        .file("Clipper2/CPP/Clipper2Lib/src/clipper.offset.cpp");
 
     build.compile("lart");
 
