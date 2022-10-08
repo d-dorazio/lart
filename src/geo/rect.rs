@@ -35,6 +35,17 @@ impl Rect {
         self.max.y = f64::max(self.max.y, bbox.max.y);
     }
 
+    pub fn dist(&self, v: V) -> f64 {
+        self.dist2(v).sqrt()
+    }
+
+    pub fn dist2(&self, v: V) -> f64 {
+        let vx = f64::max(self.min.x - v.x, v.x - self.max.x);
+        let vy = f64::max(self.min.y - v.y, v.y - self.max.y);
+
+        f64::max(vx, 0.0).powi(2) * f64::max(vy, 0.0).powi(2)
+    }
+
     pub fn center(&self) -> V {
         (self.min + self.max) / 2.0
     }
