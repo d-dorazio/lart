@@ -51,6 +51,10 @@ impl V {
     ) -> Self {
         Self::new(rng.gen_range(x), rng.gen_range(y))
     }
+
+    pub fn in_rect(rng: &mut impl Rng, rect: &Rect) -> V {
+        Self::in_range(rng, rect.left()..=rect.right(), rect.top()..=rect.bottom())
+    }
 }
 
 impl Bbox for V {
