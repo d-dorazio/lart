@@ -4,10 +4,12 @@ pub mod path;
 pub mod polygon;
 pub mod rect;
 pub(crate) mod types;
+pub mod utils;
 pub mod v;
 
 pub use rect::*;
 pub use types::*;
+pub use utils::*;
 pub use v::v;
 
 pub trait Transform: Sized + Clone {
