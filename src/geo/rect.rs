@@ -1,4 +1,4 @@
-use crate::V;
+use crate::{v, V};
 
 pub trait Bbox {
     fn bbox(&self) -> Option<Rect>;
@@ -13,6 +13,12 @@ pub struct Rect {
 impl Rect {
     pub const fn new(v: V) -> Self {
         Self { min: v, max: v }
+    }
+
+    pub fn with_dimensions(tl: V, width: f64, height: f64) -> Self {
+        let mut b = Self::new(tl);
+        b.expand(tl + v(width, height));
+        b
     }
 
     pub fn pad(&mut self, p: f64) {
