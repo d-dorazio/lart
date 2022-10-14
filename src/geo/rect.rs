@@ -89,8 +89,8 @@ impl Rect {
     }
 }
 
-pub fn bbox_union(v: &[impl Bbox]) -> Option<Rect> {
-    let mut vs = v.iter().flat_map(Bbox::bbox);
+pub fn bbox_union<'a, B: Bbox + 'a>(v: impl IntoIterator<Item = &'a B>) -> Option<Rect> {
+    let mut vs = v.into_iter().flat_map(Bbox::bbox);
     let mut bbox = vs.next()?;
     for b in vs {
         bbox.union(&b);
