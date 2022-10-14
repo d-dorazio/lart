@@ -1,4 +1,4 @@
-use std::ops::{Index, IndexMut};
+use std::ops::{Index, IndexMut, RangeBounds};
 
 use crate::{bbox_union, Bbox, Path, Rect, Transform, V};
 
@@ -55,6 +55,13 @@ impl Path {
 
     pub fn norm2(&self) -> f64 {
         self.segments().map(|(a, b)| a.dist2(b)).sum()
+    }
+
+    pub fn slice(&self, r: impl RangeBounds<usize>) -> Path {
+        let mut p = Path::new();
+        p.points
+            .extend_from_slice(&self.points[(r.start_bound().cloned(), r.end_bound().cloned())]);
+        p
     }
 }
 
