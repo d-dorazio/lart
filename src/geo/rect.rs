@@ -64,6 +64,10 @@ impl Rect {
         self.max.y - self.min.y
     }
 
+    pub fn area(&self) -> f64 {
+        self.width() * self.height()
+    }
+
     pub fn top(&self) -> f64 {
         self.min.y
     }
