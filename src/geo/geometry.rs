@@ -8,6 +8,14 @@ impl Geometry {
         }
     }
 
+    pub fn push_polygon(&mut self, p: Polygon) {
+        self.polygons.push(p);
+    }
+
+    pub fn push_path(&mut self, p: Path) {
+        self.paths.push(p);
+    }
+
     pub fn from_polygons(polygons: Vec<Polygon>) -> Self {
         Self {
             polygons,
