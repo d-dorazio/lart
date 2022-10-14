@@ -1,6 +1,10 @@
 use crate::{bbox_union, Bbox, Path, Polygon, Rect, Transform, V};
 
 impl Polygon {
+    pub const fn new() -> Self {
+        Self { areas: vec![] }
+    }
+
     pub fn is_empty(&self) -> bool {
         self.areas.iter().all(Path::is_empty)
     }
