@@ -10,6 +10,29 @@ pub fn frange(mut a: f64, b: f64, s: f64) -> impl Iterator<Item = f64> {
     })
 }
 
+/// Map the input value from the given range to the unit range [0..1]
+pub fn mapu(v: impl Into<f64>, start: impl Into<f64>, end: impl Into<f64>) -> f64 {
+    let start = start.into();
+    (v.into() - start) / (end.into() - start)
+}
+
+/// Map the input value in the unit interval to the given one.
+pub fn umap(v: f64, ostart: impl Into<f64>, oend: impl Into<f64>) -> f64 {
+    let ostart = ostart.into();
+    ostart + v * (oend.into() - ostart)
+}
+
+/// Map the input value from the given input range to the given output range.
+pub fn map(
+    v: impl Into<f64>,
+    start: impl Into<f64>,
+    end: impl Into<f64>,
+    ostart: impl Into<f64>,
+    oend: impl Into<f64>,
+) -> f64 {
+    umap(mapu(v, start, end), ostart, oend)
+}
+
 /// Dead simple wrapper over a f64 that can be used as the key to the various
 /// sort_by_key functions.
 ///
