@@ -1,3 +1,5 @@
+use std::ops::Neg;
+
 use rand::{distributions::uniform::SampleRange, Rng};
 
 use crate::{Bbox, Rect, Transform, V};
@@ -122,5 +124,10 @@ impl_num_op!(Assign, MulAssign, mul_assign);
 impl_num_op!(Assign, DivAssign, div_assign);
 impl_num_op!(Assign, RemAssign, rem_assign);
 
+impl Neg for V {
+    type Output = V;
+
+    fn neg(self) -> Self::Output {
+        V::new(-self.x, -self.y)
     }
 }
