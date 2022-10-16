@@ -91,13 +91,6 @@ macro_rules! impl_num_op {
                 V::new(self.x.$name(rhs.x), self.y.$name(rhs.y))
             }
         }
-
-        impl<W: Into<f64>> std::ops::$tr<(W, W)> for V {
-            type Output = Self;
-            fn $name(self, rhs: (W, W)) -> Self::Output {
-                V::new(self.x.$name(rhs.0.into()), self.y.$name(rhs.1.into()))
-            }
-        }
     };
 
     (Assign, $tr: ident, $name: ident) => {
@@ -112,13 +105,6 @@ macro_rules! impl_num_op {
             fn $name(&mut self, rhs: V) {
                 self.x.$name(rhs.x);
                 self.y.$name(rhs.y);
-            }
-        }
-
-        impl<W: Into<f64>> std::ops::$tr<(W, W)> for V {
-            fn $name(&mut self, rhs: (W, W)) {
-                self.x.$name(rhs.0.into());
-                self.y.$name(rhs.1.into());
             }
         }
     };
@@ -136,11 +122,5 @@ impl_num_op!(Assign, MulAssign, mul_assign);
 impl_num_op!(Assign, DivAssign, div_assign);
 impl_num_op!(Assign, RemAssign, rem_assign);
 
-impl<T: Into<f64>> From<(T, T)> for V {
-    fn from((x, y): (T, T)) -> Self {
-        V {
-            x: x.into(),
-            y: y.into(),
-        }
     }
 }

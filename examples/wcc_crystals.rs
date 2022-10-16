@@ -77,8 +77,8 @@ fn crystal(doc: &mut Sketch, parms: &Parms, texture_spacing: f64) -> (Geometry, 
                 let mut lines = Geometry::new();
                 for x in frange(bbox.left() - bbox.width(), bbox.right(), texture_spacing) {
                     lines.push_path(Path::from([
-                        (x, bbox.top()),
-                        (x + bbox.width(), bbox.bottom()),
+                        v(x, bbox.top()),
+                        v(x + bbox.width(), bbox.bottom()),
                     ]))
                 }
                 lines = lines & quad;
@@ -136,7 +136,7 @@ fn main() {
     let x1 = clip.right();
     let y0 = clip.top();
     let y1 = y0 + 10.0;
-    doc.geometry(Path::from([(x0, y0), (x1, y0)]));
+    doc.geometry(Path::from([v(x0, y0), v(x1, y0)]));
 
     let mut lines = 0;
     while lines < parms.n_shadows {
