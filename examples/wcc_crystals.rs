@@ -121,10 +121,10 @@ fn main() {
 
     let mut geos = Geometry::new();
     for (cry, text) in crystals {
-        let boundary = cry.clone() - geos.clone() - Geometry::from(clip.clone());
+        let boundary = &cry - &geos - Geometry::from(clip.clone());
 
         for p in cry.polygons() {
-            let p = Geometry::from(p.clone()) & boundary.clone();
+            let p = p & (&boundary);
             geos.extend(&p);
             doc.geometry(p);
         }
