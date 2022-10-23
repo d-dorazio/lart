@@ -29,6 +29,14 @@ impl Path {
         self.points.len()
     }
 
+    pub fn first(&self) -> Option<V> {
+        self.points.first().cloned()
+    }
+
+    pub fn last(&self) -> Option<V> {
+        self.points.last().cloned()
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = V> + '_ {
         self.points.iter().copied()
     }
