@@ -1,9 +1,11 @@
+use voronator::{delaunator, VoronoiDiagram};
+
 use crate::{Geometry, Path, Polygon, V};
 
 pub fn triangulate(pts: impl AsRef<[V]>) -> Geometry {
     let pts = pts.as_ref();
 
-    let tri = voronator::delaunator::triangulate(pts).map_or_else(Vec::new, |t| t.triangles);
+    let tri = delaunator::triangulate(pts).map_or_else(Vec::new, |t| t.triangles);
 
     let polys = tri
         .chunks_exact(3)
@@ -19,10 +21,11 @@ pub fn triangulate(pts: impl AsRef<[V]>) -> Geometry {
     Geometry::from_polygons(polys)
 }
 
+// NOTE: clip must be in clockwise order in order for the clipping to work
 pub fn voronoi(pts: impl AsRef<[V]>, clip: &Path) -> Geometry {
     let pts = pts.as_ref();
 
-    let polys = voronator::VoronoiDiagram::with_bounding_polygon(
+    let polys = VoronoiDiagram::with_bounding_polygon(
         pts.to_vec(),
         &voronator::polygon::Polygon::from_points(clip.points.clone()),
     )
@@ -36,7 +39,7 @@ pub fn voronoi(pts: impl AsRef<[V]>, clip: &Path) -> Geometry {
     Geometry::from_polygons(polys)
 }
 
-impl voronator::delaunator::Coord for V {
+impl delaunator::Coord for V {
     fn from_xy(x: f64, y: f64) -> Self {
         V::new(x, y)
     }
@@ -50,4 +53,4 @@ impl voronator::delaunator::Coord for V {
     }
 }
 
-impl voronator::delaunator::Vector<V> for V {}
+impl delaunator::Vector<V> for V {}
