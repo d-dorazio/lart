@@ -48,8 +48,9 @@ fn main() {
             let n = doc.gen_range(0..=1) + parms.n;
 
             let mut path = glyph(&mut doc, n);
-
-            path.transform(&mut |p| g * v(w, h) + p * v(ww, hh) * 0.8);
+            for p in path.iter_mut() {
+                *p = g * v(w, h) + *p * v(ww, hh) * 0.8;
+            }
 
             doc.layer(1).with_stroke("black").with_pen_width(0.7);
             doc.geometry(spline::sample(&path, 0.1));

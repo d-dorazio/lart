@@ -109,7 +109,8 @@ fn main() {
 
         {
             // internal decoration
-            let hex = hex.transformed(&mut |v| (v - c) * 0.9 + c);
+            let xform = Xform::xlate(-c) * Xform::scale(v(0.9, 0.9)) * Xform::xlate(c);
+            let hex = hex * xform;
 
             let s = doc.gen_range(0..6);
             for i in 0..=doc.gen_range(0..=1) {

@@ -22,13 +22,6 @@ sketch_parms! {
     n_shadows: u16 = 15,
 }
 
-fn rotate(p: &mut Geometry, a: f64) {
-    // TODO: I really miss a generic way of composing translations, rotations,
-    // etc...
-    let (sa, ca) = a.sin_cos();
-    p.transform(&mut |v| V::new(v.x * ca - v.y * sa, v.y * ca + v.x * sa));
-}
-
 fn crystal(doc: &mut Sketch, parms: &Parms, texture_spacing: f64) -> (Geometry, Geometry) {
     let mut horzs: Vec<Path> = vec![];
     let mut top = Polygon::new();
@@ -108,8 +101,8 @@ fn main() {
 
         let (mut cry, mut text) = crystal(&mut doc, &cry_parms, map(at, -0.4, 0.4, 0.5, 1.5));
 
-        rotate(&mut cry, a);
-        rotate(&mut text, a);
+        cry *= Xform::rot(a);
+        text *= Xform::rot(a);
 
         crystals.push((cry, text));
     }

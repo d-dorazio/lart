@@ -1,4 +1,4 @@
-use crate::{bbox_union, Bbox, Path, Polygon, Rect, Transform, V};
+use crate::{bbox_union, Bbox, Path, Polygon, Rect, V};
 
 impl Polygon {
     pub const fn new() -> Self {
@@ -13,12 +13,6 @@ impl Polygon {
 impl Bbox for Polygon {
     fn bbox(&self) -> Option<Rect> {
         bbox_union(&self.areas)
-    }
-}
-
-impl Transform for Polygon {
-    fn transform(&mut self, f: &mut impl FnMut(V) -> V) {
-        self.areas.iter_mut().for_each(|p| p.transform(f))
     }
 }
 

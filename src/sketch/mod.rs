@@ -13,7 +13,7 @@ use std::{
 pub use rand::prelude::*;
 pub use rand_xoshiro::Xoshiro256StarStar;
 
-use crate::{Geometry, Path, Rect, Transform, V};
+use crate::{v, Geometry, Path, Rect, Xform};
 
 pub type MyRng = Xoshiro256StarStar;
 
@@ -116,9 +116,9 @@ impl Sketch {
 
         let center = bbox.center();
 
+        let xform = Xform::xlate(-center) * Xform::scale(v(sf, sf)) * Xform::xlate(v(w, h) / 2.0);
         for l in self.layers.values_mut() {
-            l.geo
-                .transform(&mut |p: V| (p - center) * sf + V::new(w / 2.0, h / 2.0));
+            l.geo *= &xform;
         }
     }
 

@@ -1,6 +1,6 @@
 use std::ops::{Index, IndexMut, RangeBounds};
 
-use crate::{bbox_union, Bbox, Path, Rect, Transform, V};
+use crate::{bbox_union, Bbox, Path, Rect, V};
 
 impl Path {
     pub const fn new() -> Self {
@@ -76,12 +76,6 @@ impl Path {
 impl Bbox for Path {
     fn bbox(&self) -> Option<Rect> {
         bbox_union(&self.points)
-    }
-}
-
-impl Transform for Path {
-    fn transform(&mut self, f: &mut impl FnMut(V) -> V) {
-        self.points.iter_mut().for_each(|p| p.transform(f))
     }
 }
 

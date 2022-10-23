@@ -2,7 +2,7 @@ use std::ops::Neg;
 
 use rand::{distributions::uniform::SampleRange, Rng};
 
-use crate::{Bbox, Rect, Transform, V};
+use crate::{Bbox, Rect, V};
 
 pub fn v(x: impl Into<f64>, y: impl Into<f64>) -> V {
     V::new(x.into(), y.into())
@@ -62,12 +62,6 @@ impl V {
 impl Bbox for V {
     fn bbox(&self) -> Option<Rect> {
         Some(Rect::new(*self))
-    }
-}
-
-impl Transform for V {
-    fn transform(&mut self, f: &mut impl FnMut(V) -> V) {
-        *self = f(*self);
     }
 }
 

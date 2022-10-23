@@ -1,4 +1,4 @@
-use crate::{bbox_union, Bbox, Geometry, Path, Polygon, Rect, Transform, V};
+use crate::{bbox_union, Bbox, Geometry, Path, Polygon, Rect};
 
 impl Geometry {
     pub const fn new() -> Self {
@@ -73,13 +73,6 @@ impl Bbox for Geometry {
                 Some(b1)
             }
         }
-    }
-}
-
-impl Transform for Geometry {
-    fn transform(&mut self, f: &mut impl FnMut(V) -> V) {
-        self.polygons.iter_mut().for_each(|p| p.transform(f));
-        self.paths.iter_mut().for_each(|p| p.transform(f));
     }
 }
 
