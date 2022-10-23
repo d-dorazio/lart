@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import shutil
+import subprocess
 
 from PySide6.QtCore import Qt, QProcess, QTimer
 from PySide6.QtWidgets import (
@@ -58,6 +59,8 @@ class Skv(QMainWindow):
         self.fireCommand()
 
         self.timer.start()
+        self.status("Keep sketching!")
+        self.svg.fit()
 
     def status(self, msg: str):
         self.statusBar().showMessage(msg, 1000)
@@ -204,6 +207,7 @@ class Skv(QMainWindow):
             outfile = os.path.join(outdir, os.path.basename(self.loaded_svg_path))
             os.makedirs(outdir, exist_ok=True)
             shutil.copyfile(self.loaded_svg_path, outfile)
+            self.optimizeSvg(outfile)
             self.status(f"Svg saved")
             return
 
@@ -219,6 +223,23 @@ class Skv(QMainWindow):
             return
 
         return super().keyPressEvent(event)
+
+    def optimizeSvg(self, s: str):
+        try:
+            subprocess.check_call(
+                [
+                    "vpype",
+                    "read",
+                    s,
+                    "linesimplify",
+                    "linemerge",
+                    "linesort",
+                    "write",
+                    s,
+                ]
+            )
+        except subprocess.CalledProcessError:
+            pass
 
 
 class SvgView(QGraphicsView):
