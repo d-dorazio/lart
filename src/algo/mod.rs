@@ -1,9 +1,11 @@
+pub mod chaikin;
 pub mod circle_packing;
 pub mod spline;
 pub mod voro_tri;
 
 use std::f64::consts::TAU;
 
+pub use chaikin::*;
 pub use circle_packing::*;
 pub use voro_tri::*;
 
