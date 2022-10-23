@@ -101,6 +101,17 @@ impl<I: IntoIterator<Item = V>> From<I> for Path {
     }
 }
 
+impl From<Rect> for Path {
+    fn from(r: Rect) -> Self {
+        Self::from([
+            r.min(),
+            V::new(r.right(), r.top()),
+            r.max(),
+            V::new(r.left(), r.bottom()),
+        ])
+    }
+}
+
 impl FromIterator<V> for Path {
     fn from_iter<T: IntoIterator<Item = V>>(iter: T) -> Self {
         Self {

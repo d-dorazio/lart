@@ -1,4 +1,4 @@
-use crate::{bbox_union, Bbox, Path, Polygon, Rect, V};
+use crate::{bbox_union, Bbox, Path, Polygon, Rect};
 
 impl Polygon {
     pub const fn new() -> Self {
@@ -24,15 +24,10 @@ impl<P: Into<Path>> From<P> for Polygon {
     }
 }
 
-impl From<Rect> for Polygon {
-    fn from(r: Rect) -> Self {
-        Self {
-            areas: vec![Path::from([
-                r.min(),
-                V::new(r.right(), r.top()),
-                r.max(),
-                V::new(r.left(), r.bottom()),
-            ])],
+impl<P: Into<Path>> FromIterator<P> for Polygon {
+    fn from_iter<T: IntoIterator<Item = P>>(iter: T) -> Self {
+        Polygon {
+            areas: iter.into_iter().map(Into::into).collect(),
         }
     }
 }
