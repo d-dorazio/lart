@@ -1,6 +1,6 @@
 use std::ops::{Mul, MulAssign};
 
-use crate::{v, Geometry, Path, Polygon, V};
+use crate::{v, Geometry, Path, Polygon, Rect, V};
 
 #[derive(Debug, Clone)]
 pub struct Xform {
@@ -45,6 +45,12 @@ impl Xform {
 
     pub fn rot_on(p: V, a: f64) -> Self {
         Self::xlate(-p) * Self::rot(a) * Self::xlate(p)
+    }
+
+    pub fn rect_to_rect(src: &Rect, dst: &Rect) -> Self {
+        let sf = f64::min(dst.width() / src.width(), dst.height() / src.height());
+
+        Self::xlate(-src.center()) * Self::scale(v(sf, sf)) * Self::xlate(dst.center())
     }
 }
 

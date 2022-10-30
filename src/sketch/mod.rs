@@ -92,6 +92,11 @@ impl Sketch {
         self.page.dimensions()
     }
 
+    pub fn page_bbox(&self) -> Rect {
+        let (w, h) = self.page.dimensions();
+        Rect::with_dimensions(v(0, 0), w, h)
+    }
+
     pub fn geometry(&mut self, g: impl Into<Geometry>) {
         let g = g.into();
         self.layer(self.layer_id).geo.extend(&g);
@@ -103,26 +108,21 @@ impl Sketch {
     }
 
     pub fn fit_to_page(&mut self, margin: f64) {
-        let bbox = match self.bbox() {
+        let bbox = match self.layers_bbox() {
             None => return,
             Some(b) => b,
         };
 
-        let (w, h) = self.dimensions();
-        let sf = f64::min(
-            (w - margin * 2.0) / bbox.width(),
-            (h - margin * 2.0) / bbox.height(),
-        );
+        let mut page_bbox = self.page_bbox();
+        page_bbox.pad(-margin);
 
-        let center = bbox.center();
-
-        let xform = Xform::xlate(-center) * Xform::scale(v(sf, sf)) * Xform::xlate(v(w, h) / 2.0);
+        let xform = Xform::rect_to_rect(&bbox, &page_bbox);
         for l in self.layers.values_mut() {
             l.geo *= &xform;
         }
     }
 
-    fn bbox(&self) -> Option<Rect> {
+    fn layers_bbox(&self) -> Option<Rect> {
         let mut bbox: Option<Rect> = None;
 
         for l in self.layers.values() {
