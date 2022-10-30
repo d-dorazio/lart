@@ -22,9 +22,9 @@ impl Rect {
     }
 
     pub fn pad(&mut self, p: f64) {
-        let p = p.abs();
-        self.min -= p;
-        self.max += p;
+        let mut r = Rect::new(self.min - p);
+        r.expand(self.max + p);
+        *self = r;
     }
 
     pub fn expand(&mut self, v: V) {
