@@ -119,3 +119,9 @@ impl FromIterator<V> for Path {
         }
     }
 }
+
+impl Extend<V> for Path {
+    fn extend<T: IntoIterator<Item = V>>(&mut self, iter: T) {
+        self.points.extend(iter);
+    }
+}
