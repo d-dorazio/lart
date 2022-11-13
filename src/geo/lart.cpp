@@ -60,7 +60,7 @@ struct Clipper::pimpl
             Polygon p;
             p.areas.reserve(1);
 
-            std::vector<Clipper2Lib::PolyPath<int64_t> *> stack;
+            std::vector<Clipper2Lib::PolyPath64 *> stack;
             stack.push_back(poly);
 
             while (!stack.empty())
