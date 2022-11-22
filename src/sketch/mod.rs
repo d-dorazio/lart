@@ -35,11 +35,7 @@ pub struct Layer {
     pen_width: f64, // mm
 }
 
-pub enum Page {
-    A4,
-    A5,
-    Custom(f64, f64),
-}
+pub struct Page(pub f64, pub f64);
 
 #[macro_export]
 macro_rules! skv_log {
@@ -89,11 +85,11 @@ impl Sketch {
     }
 
     pub fn dimensions(&self) -> (f64, f64) {
-        self.page.dimensions()
+        (self.page.0, self.page.1)
     }
 
     pub fn page_bbox(&self) -> Rect {
-        let (w, h) = self.page.dimensions();
+        let (w, h) = self.dimensions();
         Rect::with_dimensions(v(0, 0), w, h)
     }
 
@@ -174,7 +170,7 @@ impl Sketch {
         let out = fs::File::create(&outpath)?;
         let mut out = BufWriter::new(out);
 
-        let (width, height) = self.page.dimensions();
+        let (width, height) = self.dimensions();
 
         writeln!(
             out,
@@ -268,13 +264,13 @@ impl Default for Layer {
 }
 
 impl Page {
-    fn dimensions(&self) -> (f64, f64) {
-        match *self {
-            Page::A4 => (210.0, 297.0),
-            Page::A5 => (148.0, 210.0),
-            Page::Custom(w, h) => (w, h),
-        }
-    }
+    pub const A0: Self = Self(841.0, 1189.0);
+    pub const A1: Self = Self(594.0, 841.0);
+    pub const A2: Self = Self(420.0, 594.0);
+    pub const A3: Self = Self(297.0, 420.0);
+    pub const A4: Self = Self(210.0, 297.0);
+    pub const A5: Self = Self(148.0, 210.0);
+    pub const A6: Self = Self(105.0, 148.0);
 }
 
 impl RngCore for Sketch {
