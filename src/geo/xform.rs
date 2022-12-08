@@ -114,10 +114,9 @@ macro_rules! impl_trivial_xform_helpers {
         impl<'a> Mul<&'a Xform> for $t {
             type Output = Self;
 
-            fn mul(self, rhs: &'a Xform) -> Self::Output {
-                let mut a = self.clone();
-                a *= rhs;
-                a
+            fn mul(mut self, rhs: &'a Xform) -> Self::Output {
+                self *= rhs;
+                self
             }
         }
     };
