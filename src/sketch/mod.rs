@@ -13,7 +13,7 @@ use std::{
 pub use rand::prelude::*;
 pub use rand_xoshiro::Xoshiro256StarStar;
 
-use crate::{v, Geometry, Path, Rect, Xform};
+use crate::{v, Geometry, Rect, Xform};
 
 pub type MyRng = Xoshiro256StarStar;
 
@@ -182,13 +182,6 @@ impl Sketch {
 
         // TODO: dump parameters here?
 
-        let dump_path_points = |out: &mut BufWriter<fs::File>, path: &Path| -> io::Result<()> {
-            for p in path.points() {
-                write!(out, "{},{} ", p.x, p.y)?;
-            }
-            Ok(())
-        };
-
         for (lid, layer) in &self.layers {
             let geo = &layer.geo;
 
@@ -208,16 +201,25 @@ impl Sketch {
                 }
 
                 write!(out, r#"<polyline points=""#)?;
-                dump_path_points(&mut out, path)?;
+                for p in path.points() {
+                    write!(out, "{},{} ", p.x, p.y)?;
+                }
                 writeln!(out, r#""/>"#)?;
             }
 
             for poly in &geo.polygons {
+                write!(out, r#"<path d=""#)?;
                 for path in &poly.areas {
-                    write!(out, r#"<polygon points=""#)?;
-                    dump_path_points(&mut out, path)?;
-                    writeln!(out, r#""/>"#)?;
+                    if path.is_empty() {
+                        continue;
+                    }
+                    write!(out, r#"M{},{} "#, path.points()[0].x, path.points[0].y)?;
+                    for p in path.points().iter().skip(1) {
+                        write!(out, r#"L{},{} "#, p.x, p.y)?;
+                    }
+                    write!(out, "Z ")?;
                 }
+                writeln!(out, r#""/>"#)?;
             }
 
             writeln!(out, "</g>")?;
