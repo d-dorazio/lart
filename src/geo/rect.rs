@@ -99,6 +99,14 @@ impl Rect {
     pub fn max(&self) -> V {
         self.max
     }
+
+    pub fn subdivide(&self, xdivs: u32, ydivs: u32) -> impl Iterator<Item = Rect> + '_ {
+        let d = v(self.width(), self.height()) / v(xdivs, ydivs);
+
+        (0..ydivs)
+            .flat_map(move |r| (0..xdivs).map(move |c| (r, c)))
+            .map(move |(r, c)| Rect::with_dimensions(self.min + d * v(c, r), d.x, d.y))
+    }
 }
 
 pub fn bbox_union<'a, B: Bbox + 'a>(v: impl IntoIterator<Item = &'a B>) -> Option<Rect> {
