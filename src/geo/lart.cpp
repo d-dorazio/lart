@@ -55,13 +55,13 @@ struct Clipper::pimpl
         for (auto const &path64 : paths)
             geo.paths.push_back(to_path(path64, precision));
 
-        for (auto *poly : polytree)
+        for (auto const &poly : polytree)
         {
             Polygon p;
             p.areas.reserve(1);
 
             std::vector<Clipper2Lib::PolyPath64 *> stack;
-            stack.push_back(poly);
+            stack.push_back(poly.get());
 
             while (!stack.empty())
             {
@@ -71,7 +71,9 @@ struct Clipper::pimpl
                 p.areas.push_back(to_path(polypath->Polygon(), precision));
 
                 p.areas.reserve(p.areas.size() + polypath->Count());
-                stack.insert(std::end(stack), std::begin(*polypath), std::end(*polypath));
+                stack.reserve(stack.size() + polypath->Count());
+                for (auto const &child : *polypath)
+                    stack.push_back(child.get());
             }
 
             geo.polygons.push_back(std::move(p));
