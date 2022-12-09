@@ -27,11 +27,23 @@ impl Rect {
         *self = r;
     }
 
+    pub fn padded(&self, p: f64) -> Self {
+        let mut a = self.clone();
+        a.pad(p);
+        a
+    }
+
     pub fn expand(&mut self, v: V) {
         self.min.x = f64::min(self.min.x, v.x);
         self.min.y = f64::min(self.min.y, v.y);
         self.max.x = f64::max(self.max.x, v.x);
         self.max.y = f64::max(self.max.y, v.y);
+    }
+
+    pub fn expanded(&self, v: V) -> Self {
+        let mut a = self.clone();
+        a.expand(v);
+        a
     }
 
     pub fn union(&mut self, bbox: &Rect) {
