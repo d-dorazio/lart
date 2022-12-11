@@ -71,6 +71,10 @@ impl Path {
             .extend_from_slice(&self.points[(r.start_bound().cloned(), r.end_bound().cloned())]);
         p
     }
+
+    pub fn reverse(&mut self) {
+        self.points.reverse();
+    }
 }
 
 impl Bbox for Path {
