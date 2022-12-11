@@ -26,6 +26,8 @@ pub struct Sketch {
 
     layer_id: i32,
     layers: BTreeMap<i32, Layer>,
+
+    background: String,
 }
 
 pub struct Layer {
@@ -57,6 +59,7 @@ impl Sketch {
             rng: MyRng::seed_from_u64(seed),
             layer_id: 1,
             layers: BTreeMap::new(),
+            background: String::new(),
         }
     }
 
@@ -73,6 +76,11 @@ impl Sketch {
     pub fn with_seed(mut self, seed: u64) -> Self {
         self.seed = seed;
         self.rng = MyRng::seed_from_u64(seed);
+        self
+    }
+
+    pub fn with_background(mut self, color: &str) -> Self {
+        self.background = color.to_owned();
         self
     }
 
@@ -180,7 +188,16 @@ impl Sketch {
             h = height
         )?;
 
-        // TODO: dump parameters here?
+        // TODO: save parameters in the svg here?
+        // the problem is that vpype and other tools throw away comments...
+
+        if !self.background.is_empty() {
+            writeln!(
+                out,
+                r#"<rect x="0" y="0" width="{}" height="{}" stroke="none" fill="{}" />"#,
+                width, height, &self.background
+            )?;
+        }
 
         for (lid, layer) in &self.layers {
             let geo = &layer.geo;
