@@ -198,8 +198,27 @@ class Skv(QMainWindow):
             return
 
         if event.key() == Qt.Key_P:
-            # TODO: png export
-            pass
+            # TODO: how to take width/height of the output image?
+            # as of now they're the same as of the svg dimensions, but it feels
+            # wrong. Probably it would make sense to add it as a metadata in the
+            # SVG in some way.
+            self.status("exporting png...")
+            pngdir = os.path.abspath(os.path.join(os.getcwd(), "png"))
+            outfile = os.path.join(
+                pngdir,
+                os.path.splitext(os.path.basename(self.loaded_svg_path))[0] + ".png",
+            )
+            os.makedirs(pngdir, exist_ok=True)
+            subprocess.check_call(
+                [
+                    "inkscape",
+                    "-o",
+                    outfile,
+                    self.loaded_svg_path,
+                ]
+            )
+            self.status("png exported")
+            return
 
         if event.key() == Qt.Key_Space:
             self.timer.stop()
