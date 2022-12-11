@@ -202,6 +202,7 @@ class Skv(QMainWindow):
             pass
 
         if event.key() == Qt.Key_Space:
+            self.timer.stop()
             self.status("Saving svg")
             outdir = os.path.abspath(os.path.join(os.getcwd(), "liked"))
             outfile = os.path.join(outdir, os.path.basename(self.loaded_svg_path))
@@ -209,6 +210,7 @@ class Skv(QMainWindow):
             shutil.copyfile(self.loaded_svg_path, outfile)
             self.optimizeSvg(outfile)
             self.status(f"Svg saved")
+            self.timer.start()
             return
 
         if event.key() == Qt.Key_F:
