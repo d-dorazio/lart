@@ -1,13 +1,15 @@
 pub mod parms;
+pub mod vpype;
 
 pub use parms::*;
+pub use vpype::*;
 
 use std::{
     collections::BTreeMap,
     ffi::OsStr,
     fs,
     io::{self, BufWriter, Write},
-    path::{Path as FsPath, PathBuf},
+    path::Path as FsPath,
 };
 
 pub use rand::prelude::*;
@@ -16,6 +18,10 @@ pub use rand_xoshiro::Xoshiro256StarStar;
 use crate::{v, Geometry, Rect, Xform};
 
 pub type MyRng = Xoshiro256StarStar;
+
+pub trait Plugin: 'static {
+    fn execute(&self, svg: &str);
+}
 
 pub struct Sketch {
     name: String,
@@ -26,6 +32,8 @@ pub struct Sketch {
 
     layer_id: i32,
     layers: BTreeMap<i32, Layer>,
+
+    plugins: Vec<Box<dyn Plugin>>,
 
     background: String,
 }
@@ -59,6 +67,7 @@ impl Sketch {
             rng: MyRng::seed_from_u64(seed),
             layer_id: 1,
             layers: BTreeMap::new(),
+            plugins: vec![],
             background: String::new(),
         }
     }
@@ -76,6 +85,11 @@ impl Sketch {
     pub fn with_seed(mut self, seed: u64) -> Self {
         self.seed = seed;
         self.rng = MyRng::seed_from_u64(seed);
+        self
+    }
+
+    pub fn plugin(mut self, plugin: impl Plugin) -> Self {
+        self.plugins.push(Box::new(plugin));
         self
     }
 
@@ -143,7 +157,7 @@ impl Sketch {
         bbox
     }
 
-    pub fn save(&self) -> io::Result<PathBuf> {
+    pub fn save(&self) -> io::Result<()> {
         let outdir = FsPath::new(&self.name);
 
         if !outdir.is_dir() {
@@ -175,78 +189,86 @@ impl Sketch {
         };
 
         let outpath = outdir.join(&get_next_free_name()?);
-        let out = fs::File::create(&outpath)?;
-        let mut out = BufWriter::new(out);
+        {
+            let out = fs::File::create(&outpath)?;
+            let mut out = BufWriter::new(out);
 
-        let (width, height) = self.dimensions();
+            let (width, height) = self.dimensions();
 
-        writeln!(
-            out,
-            r#"<?xml version="1.0" encoding="utf-8" ?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}mm" height="{h}mm">"#,
-            w = width,
-            h = height
-        )?;
-
-        // TODO: save parameters in the svg here?
-        // the problem is that vpype and other tools throw away comments...
-
-        if !self.background.is_empty() {
             writeln!(
                 out,
-                r#"<rect x="0" y="0" width="{}" height="{}" stroke="none" fill="{}" />"#,
-                width, height, &self.background
+                r#"<?xml version="1.0" encoding="utf-8" ?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}mm" height="{h}mm">"#,
+                w = width,
+                h = height
             )?;
-        }
 
-        for (lid, layer) in &self.layers {
-            let geo = &layer.geo;
+            // TODO: save parameters in the svg here?
+            // the problem is that vpype and other tools throw away comments...
 
-            if geo.polygons.is_empty() && geo.paths.is_empty() {
-                continue;
+            if !self.background.is_empty() {
+                writeln!(
+                    out,
+                    r#"<rect x="0" y="0" width="{}" height="{}" stroke="none" fill="{}" />"#,
+                    width, height, &self.background
+                )?;
             }
 
-            writeln!(
-                out,
-                r#"<g id="layer{}" fill="{}" stroke="{}" stroke-width="{}">"#,
-                lid, layer.fill, layer.stroke, layer.pen_width
-            )?;
+            for (lid, layer) in &self.layers {
+                let geo = &layer.geo;
 
-            for path in &geo.paths {
-                if path.is_empty() {
+                if geo.polygons.is_empty() && geo.paths.is_empty() {
                     continue;
                 }
 
-                write!(out, r#"<polyline points=""#)?;
-                for p in path.points() {
-                    write!(out, "{},{} ", p.x, p.y)?;
-                }
-                writeln!(out, r#""/>"#)?;
-            }
+                writeln!(
+                    out,
+                    r#"<g id="layer{}" fill="{}" stroke="{}" stroke-width="{}">"#,
+                    lid, layer.fill, layer.stroke, layer.pen_width
+                )?;
 
-            for poly in &geo.polygons {
-                write!(out, r#"<path d=""#)?;
-                for path in &poly.areas {
+                for path in &geo.paths {
                     if path.is_empty() {
                         continue;
                     }
-                    write!(out, r#"M{},{} "#, path.points()[0].x, path.points[0].y)?;
-                    for p in path.points().iter().skip(1) {
-                        write!(out, r#"L{},{} "#, p.x, p.y)?;
+
+                    write!(out, r#"<polyline points=""#)?;
+                    for p in path.points() {
+                        write!(out, "{},{} ", p.x, p.y)?;
                     }
-                    write!(out, "Z ")?;
+                    writeln!(out, r#""/>"#)?;
                 }
-                writeln!(out, r#""/>"#)?;
+
+                for poly in &geo.polygons {
+                    write!(out, r#"<path d=""#)?;
+                    for path in &poly.areas {
+                        if path.is_empty() {
+                            continue;
+                        }
+                        write!(out, r#"M{},{} "#, path.points()[0].x, path.points[0].y)?;
+                        for p in path.points().iter().skip(1) {
+                            write!(out, r#"L{},{} "#, p.x, p.y)?;
+                        }
+                        write!(out, "Z ")?;
+                    }
+                    writeln!(out, r#""/>"#)?;
+                }
+
+                writeln!(out, "</g>")?;
             }
 
-            writeln!(out, "</g>")?;
+            writeln!(out, r"</svg>")?;
         }
 
-        writeln!(out, r"</svg>")?;
+        let outpath = outpath.canonicalize()?;
+        let outpath = outpath.to_str().unwrap();
+        for p in &self.plugins {
+            p.execute(outpath);
+        }
 
-        skv_log!("SVG", outpath.canonicalize()?.to_str().unwrap());
+        skv_log!("SVG", outpath);
 
-        Ok(outpath)
+        Ok(())
     }
 }
 
