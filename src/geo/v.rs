@@ -57,6 +57,18 @@ impl V {
     pub fn in_rect(rng: &mut impl Rng, rect: &Rect) -> V {
         Self::in_range(rng, rect.left()..=rect.right(), rect.top()..=rect.bottom())
     }
+
+    pub fn max(self, o: Self) -> Self {
+        Self::new(self.x.max(o.x), self.y.max(o.y))
+    }
+
+    pub fn min(self, o: Self) -> Self {
+        Self::new(self.x.min(o.x), self.y.min(o.y))
+    }
+
+    pub fn abs(self) -> Self {
+        Self::new(self.x.abs(), self.y.abs())
+    }
 }
 
 impl Bbox for V {
