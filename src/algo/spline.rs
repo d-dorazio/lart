@@ -1,5 +1,10 @@
 use crate::{Path, V};
 
+/// Sample the given Path with Catmull-Rom interpolation with the given sample
+/// distance.
+///
+/// Note that the returned samples are not equidistant as the `d` parameter is
+/// the distance on the original curve.
 pub fn sample(path: &Path, d: f64) -> Path {
     if path.is_empty() {
         return Path::new();
