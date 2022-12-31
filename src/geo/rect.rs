@@ -68,6 +68,10 @@ impl Rect {
         (self.min + self.max) / 2.0
     }
 
+    pub fn dimensions(&self) -> V {
+        v(self.width(), self.height())
+    }
+
     pub fn width(&self) -> f64 {
         self.max.x - self.min.x
     }
